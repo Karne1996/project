@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS Airports ( iata_code string, airport string, city string, state string, country string, latitude double, longitude double) STORED AS ORC LOCATION 's3a://finalgroup6/clean_data/Airports1/'

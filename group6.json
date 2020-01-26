@@ -1,0 +1,194 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Parameters" : {
+    "InstanceType" : {
+    "Default" : "m4.xlarge",
+      "Type" : "String"
+    },
+    "ReleaseLabel" : {
+    "Default": "emr-5.28.1",
+      "Type" : "String"
+    },
+    "SubnetId" : {
+    "Default": "subnet-ccad8bab",
+      "Type" : "String"
+    },
+    "TerminationProtected" : {
+
+      "Type" : "String",
+      "Default" : "false"
+    },
+    "ElasticMapReducePrincipal" : {
+    "Default" : "elasticmapreduce.amazonaws.com",
+      "Type" : "String"
+    },
+    "Ec2Principal" : {
+    "Default" : "ec2.amazonaws.com",
+      "Type" : "String"
+    },
+  "KeyName": {
+            "Description": "Name of an existing EC2 KeyPair to enable SSH to the instances",
+      "Default" : "hive",
+            "Type": "String"
+        },
+  "CoreInstanceCount": {
+            "Default": "1",
+            "Type": "Number"
+        },
+  "EMRLogDir": {
+  
+            "Description": "Log Dir for the EMR cluster",
+      "Default" : "s3://aws-logs-453327021857-us-east-1/elasticmapreduce/",
+            "Type": "String"
+        }
+  },
+  "Resources": {
+    "cluster": {
+      "Type": "AWS::EMR::Cluster",
+      "Properties": {
+      "Applications":[{
+                        "Name": "Hadoop"
+                    },
+                    {
+                        "Name": "JupyterHub"
+                    },
+                    {
+                        "Name": "Hive"
+                    },
+          {
+                        "Name": "Spark"
+                    },
+          {
+                        "Name": "Tez"
+                    },
+      
+          {
+                        "Name": "ZooKeeper"
+                    }
+],
+    "BootstrapActions": [
+                    {
+                        "Name": "Custom action",
+                        "ScriptBootstrapAction": {
+                          "Path": "s3://hive-vita/Step/data_bs.sh"
+                        }
+                    }
+                ],
+	"EbsRootVolumeSize" : 50,
+        "Instances": {
+
+          "MasterInstanceGroup": {
+            "InstanceCount": 1,
+            "InstanceType": {"Ref" : "InstanceType"},
+            "Market": "ON_DEMAND",
+            "Name": "cftMaster"
+          },
+          "CoreInstanceGroup": {
+            "InstanceCount": {"Ref": "CoreInstanceCount"},
+            "InstanceType": {"Ref" : "InstanceType"},
+            "Market": "ON_DEMAND",
+            "Name": "cftSlave",
+      "EbsConfiguration": {
+                            "EbsBlockDeviceConfigs": [
+                                {
+                                    "VolumeSpecification": {
+                                        "SizeInGB": "60",
+                                        "VolumeType": "gp2"
+                                    },
+                                    "VolumesPerInstance": "1"
+                                }
+                            ],
+                            "EbsOptimized": "true"
+                        }
+      
+      
+          },
+          "TerminationProtected" : {"Ref" : "TerminationProtected"},
+          "Ec2SubnetId" : {"Ref" : "SubnetId"},
+      "Ec2KeyName": {"Ref": "KeyName"}
+        },
+    "LogUri": {
+                    "Ref": "EMRLogDir"
+                },
+        "Name": "Jan-26",
+        "JobFlowRole" : {"Ref": "emrEc2InstanceProfile"},
+        "ServiceRole" : {"Ref": "emrRole"},
+        "ReleaseLabel" : {"Ref" : "ReleaseLabel"},
+
+        "VisibleToAllUsers" : true,
+        "Tags": [
+          {
+            "Key": "key1",
+            "Value": "value1"
+          }
+]
+      }
+    },
+    "emrRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2008-10-17",
+          "Statement": [
+            {
+              "Sid": "",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": {"Ref" : "ElasticMapReducePrincipal"}
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Path": "/",
+        "ManagedPolicyArns": ["arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceRole"]
+      }
+    },
+    "emrEc2Role": {
+      "Type": "AWS::IAM::Role",
+
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2008-10-17",
+          "Statement": [
+            {
+              "Sid": "",
+
+              "Effect": "Allow",
+              "Principal": {
+                "Service": {"Ref" : "Ec2Principal"}
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Path": "/",
+        "ManagedPolicyArns": ["arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceforEC2Role"]
+      }
+    },
+    "emrEc2InstanceProfile": {
+      "Type": "AWS::IAM::InstanceProfile",
+      "Properties": {
+        "Path": "/",
+        "Roles": [ {
+          "Ref": "emrEc2Role"
+        } ]
+      }
+    },
+ "TestStep": {
+            "Properties": {
+                "ActionOnFailure": "CANCEL_AND_WAIT",
+                "HadoopJarStep": {
+                    "Args": ["s3://hive-vita/Step/data+clean.sh"],
+                    "Jar":"s3://us-east-1.elasticmapreduce/libs/script-runner/script-runner.jar"
+                    
+                },
+                "JobFlowId": {
+                    "Ref": "cluster"
+                },
+                "Name": "TestStep"
+            },
+            "Type": "AWS::EMR::Step"
+        }
+  }
+}

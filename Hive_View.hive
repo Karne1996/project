@@ -1,0 +1,41 @@
+1. VIEW CANCELLED 
+
+CREATE VIEW view_cancelled AS SELECT t1.year, t2.airline_name, t1.cancellation_code, count(t1.cancelled) as c_count from clean_flightlogs1 as t1 JOIN airlines t2 ON t1.op_carrier=t2.airline_code where t1.cancelled = 1 GROUP BY t1.year, t1.cancellation_code, t2.airline_name ORDER BY t1.year, c_count;
+
+2. VIEW DELAY dest and origin
+
+CREATE VIEW view_delay3 AS SELECT t1.year, t2.airline_name, t1.dest, count(t1.delay) as d_count from clean_flightlogs1 as t1 JOIN airlines t2 ON t1.op_carrier=t2.airline_code where t1.delay > 1 GROUP BY t1.year, t1.dest, t2.airline_name ORDER BY t1.year, d_count;
+
+CREATE VIEW view_delay4 AS SELECT t1.year, t2.airline_name, t1.origin, count(t1.delay) as d_count from clean_flightlogs1 as t1 JOIN airlines t2 ON t1.op_carrier=t2.airline_code where t1.delay > 1 GROUP BY t1.year, t1.origin, t2.airline_name ORDER BY t1.year, d_count;
+
+3. cancelled origin
+
+CREATE view View_cancelled_origin AS SELECT t1.year, t2.airport_name, t2.city, t2.state, t2.country, t2.latitude, t2.longitude, count(t1.delay) as d_count from clean_flightlogs1 as t1 JOIN airports t2 ON t1.origin=t2.airport_code where t1.cancelled = 1 GROUP BY t1.year, t2.airport_name,t2.city,t2.state,t2.country,t2.latitude,t2.longitude ORDER BY t1.year;
+
+4. cancelled dest
+
+CREATE view View_cancelled_dest AS SELECT t1.year, t2.airport_name, t2.city, t2.state, t2.country, t2.latitude, t2.longitude, count(t1.delay) as d_count from clean_flightlogs1 as t1 JOIN airports t2 ON t1.dest=t2.airport_code where t1.cancelled = 1 GROUP BY t1.year, t2.airport_name,t2.city,t2.state,t2.country,t2.latitude,t2.longitude ORDER BY t1.year;
+
+5. 
+
+CREATE VIEW view_delay4 AS SELECT t1.year, t2.airline_name, t1.origin, count(t1.delay) as d_count from clean_flightlogs as t1 JOIN airlines t2 ON t1.op_carrier=t2.airline_code where t1.origin > 1 GROUP BY t1.year, t1.dest, t2.airline_name ORDER BY t1.year, d_count;
+
+6. 
+
+create view view_delay_cause AS select  t1.year, t2.airline_name, count(t1.carrier_delay), count(t1.whather_delay), count(t1.nas_delay), count(t1.security_delay), count(late_aircraft_delay) from clean_flightlogs1 as t1 JOIN airlines t2 ON t1.op_carrier=t2.airline_code where t1.carrier_delay > 0, t1.whather_delay > 0, t1.nas_delay > 0, t1.security_delay > 0, late_aircraft_delay > 0 GROUP BY  t1.year, t2.airline_name, count(t1.carrier_delay), count(t1.whather_delay), count(t1.nas_delay), count(t1.security_delay), count(late_aircraft_delay) ;
+
+create view view_delay_cause AS select  t1.year, t2.airline_name, count(t1.carrier_delay), count(t1.whather_delay), count(t1.nas_delay), count(t1.security_delay), count(late_aircraft_delay) from clean_flightlogs1 as t1 JOIN airlines t2 ON t1.op_carrier=t2.airline_code where t1.carrier_delay > 0 or t1.whather_delay > 0 or t1.nas_delay > 0 or t1.security_delay > 0 or late_aircraft_delay > 0 GROUP BY  t1.year, t2.airline_name ;
+
+create view view_delay_cause1 AS select  t1.year, t1.month, t2.airline_name, count(t1.carrier_delay) from clean_flightlogs1 as t1 JOIN airlines t2 ON t1.op_carrier=t2.airline_code where t1.carrier_delay > 0 or t1.whather_delay > 0 or t1.nas_delay > 0 or t1.security_delay > 0 or late_aircraft_delay > 0 GROUP BY  t1.year, t2.airline_name, t1.month ;
+
+=====
+create view view_delay_cause2 AS select  t1.year, t1.month, t2.airline_name, count(t1.carrier_delay) from clean_flightlogs1 as t1 JOIN airlines t2 ON t1.op_carrier=t2.airline_code where t1.carrier_delay > 0 and t1.whather_delay > 0 and t1.nas_delay > 0 and t1.security_delay > 0 and late_aircraft_delay > 0 GROUP BY  t1.year, t2.airline_name, t1.month ;
+=====
+
+-----
+MONTH WISE ANALYSIS
+---------
+
+CREATE VIEW view_cancelled_yr AS SELECT t1.month, t2.airline_name, t1.cancellation_code, count(t1.cancelled) as c_count from clean_flightlogs1 as t1 JOIN airlines t2 ON t1.op_carrier=t2.airline_code where t1.cancelled = 1 and year = '2009' GROUP BY t1.month, t1.cancellation_code, t2.airline_name ORDER BY t1.month, c_count;
+
+CREATE VIEW view_delay_yr AS SELECT t1.month, t2.airline_name, t1.dest, count(t1.delay) as d_count from clean_flightlogs1 as t1 JOIN airlines t2 ON t1.op_carrier=t2.airline_code where t1.delay > 1 and year = '2009' GROUP BY t1.month, t1.dest, t2.airline_name ORDER BY t1.month, d_count;
